@@ -17,6 +17,12 @@ mythic_action = {
         flags = 0,
         task = nil,
     },
+    animationTwo = {
+        animDict = nil,
+        anim = nil,
+        flags = 0,
+        task = nil,
+    },
     prop = {
         model = nil,
         bone = nil,
@@ -126,6 +132,24 @@ function ActionStart()
                             TaskStartScenarioInPlace(PlayerPedId(), 'PROP_HUMAN_BUM_BIN', 0, true)
                         end
                     end
+                    
+                    if mythic_action.animationTwo ~= nil then
+                        if mythic_action.animationTwo.task ~= nil then
+                            TaskStartScenarioInPlace(PlayerPedId(), mythic_action.animation.task, 0, true)
+                        elseif mythic_action.animationTwo.animDict ~= nil and mythic_action.animation.anim ~= nil then
+                            if mythic_action.animationTwo.flags == nil then
+                                mythic_action.animationTwo.flags = 1
+                            end
+
+                            local player = PlayerPedId()
+                            if ( DoesEntityExist( player ) and not IsEntityDead( player )) then
+                                loadAnimDict2( mythic_action.animationTwo.animDict )
+                                TaskPlayAnim( player, mythic_action.animationTwo.animDict, mythic_action.animationTwo.anim, 3.0, 1.0, -1, mythic_action.animationTwo.flags, 0, 0, 0, 0 )     
+                            end
+                        else
+                            TaskStartScenarioInPlace(PlayerPedId(), 'PROP_HUMAN_BUM_BIN', 0, true)
+                        end
+                    end
 
                     isAnim = true
                 end
@@ -228,6 +252,14 @@ function ActionCleanup()
             ClearPedTasks(ped)
         end
     end
+    if mythic_action.animationTwo ~= nil then
+        if mythic_action.animationTwo.task ~= nil or (mythic_action.animationTwo.animDict ~= nil and mythic_action.animationTwo.anim ~= nil) then
+            ClearPedSecondaryTask(ped)
+            StopAnimTask(ped, mythic_action.animDict, mythic_action.anim, 1.0)
+        else
+            ClearPedTasks(ped)
+        end
+    end
 
     DetachEntity(NetToObj(prop_net), 1, 1)
     DeleteEntity(NetToObj(prop_net))
@@ -241,6 +273,13 @@ end
 function loadAnimDict(dict)
 	while (not HasAnimDictLoaded(dict)) do
 		RequestAnimDict(dict)
+		Citizen.Wait(5)
+	end
+end
+
+function loadAnimDict2(dict2)
+	while (not HasAnimDictLoaded(dict2)) do
+		RequestAnimDict(dict2)
 		Citizen.Wait(5)
 	end
 end
